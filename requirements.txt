@@ -1,15 +1,16 @@
-streamlit==1.32.2
-streamlit-webrtc==0.47.1
+streamlit
+streamlit-webrtc
 
-opencv-python-headless==4.9.0.80
+opencv-python-headless
 
-pandas==2.0.3
+numpy
+pandas
 
-tensorflow-cpu==2.15.0
+tensorflow-cpu
 
-ultralytics==8.1.47
+ultralytics
 
-torch==2.2.1
-torchvision==0.17.1
+torch
+torchvision
 
-av==11.0.0
+av
