@@ -76,7 +76,7 @@ with col2:
 # =========================
 st.markdown("### ⚙️ Pengaturan")
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
 
@@ -93,13 +93,6 @@ with col2:
     )
 
     device_status = get_device_status(device)
-
-with col3:
-
-    camera_mode = st.selectbox(
-        "📷 Kamera",
-        ["Web Browser", "OBS Virtual Camera"]
-    )
 
 # =========================
 # BUTTON
@@ -119,6 +112,8 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
+model = None
+
 if model_choice == "MobileNetV3":
 
     model = load_mobilenet(
@@ -136,131 +131,170 @@ else:
 # =========================
 col_cam, col_info = st.columns([2,1])
 
+info_box = col_info.empty()
 status_placeholder = col_info.empty()
 
 # =========================
-# PROCESS FRAME
-# =========================
-def process_frame(img):
-
-    start_time = time.time()
-
-    label = "-"
-    conf = 0
-
-    # =========================
-    # DETEKSI WAJAH
-    # =========================
-    face_box = detect_face(img)
-
-    if face_box is not None:
-
-        # =========================
-        # BOX ORIGINAL
-        # =========================
-        x1, y1, x2, y2 = face_box
-
-        # =========================
-        # VALIDASI AREA
-        # =========================
-        if x2 > x1 and y2 > y1:
-
-            face = img[y1:y2, x1:x2]
-
-            if face.size > 0:
-
-                # =========================
-                # PREDIKSI
-                # =========================
-                if model_choice == "MobileNetV3":
-
-                    face_input = preprocess(face)
-
-                    label, conf = predict_mobilenet(
-                        model,
-                        face_input
-                    )
-
-                else:
-
-                    label, conf = predict_yolo(
-                        model,
-                        face
-                    )
-
-                # =========================
-                # WARNA BOX
-                # =========================
-                color = (
-                    (0,255,0)
-                    if label == "Fokus"
-                    else (0,0,255)
-                )
-
-                # =========================
-                # BOUNDING BOX
-                # =========================
-                cv2.rectangle(
-                    img,
-                    (x1, y1),
-                    (x2, y2),
-                    color,
-                    2
-                )
-
-                # =========================
-                # LABEL
-                # =========================
-                cv2.putText(
-                    img,
-                    f"{label} {conf:.2f}",
-                    (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.8,
-                    color,
-                    2
-                )
-
-    # =========================
-    # FPS
-    # =========================
-    fps = 1 / (time.time() - start_time)
-
-    # =========================
-    # INFO BOX
-    # =========================
-    status_placeholder.markdown(f"""
-    ## 📊 Informasi
-
-    - 👤 Nama: **{nama}**
-    - 🧠 Model: **{model_choice}**
-    - 💻 Device: **{device_status}**
-    - 📷 Kamera: **{camera_mode}**
-
-    ---
-
-    - 🎯 Status: **{label}**
-    - 📈 Confidence: **{conf:.2f}**
-
-    ---
-
-    - ⚡ FPS: **{fps:.2f}**
-    """)
-
-    return img
-
-# =========================
-# WEBRTC PROCESSOR
+# VIDEO PROCESSOR
 # =========================
 class VideoProcessor(VideoProcessorBase):
 
+    def __init__(self):
+
+        self.last_log_time = 0
+
     def recv(self, frame):
 
+        # =========================
+        # FRAME DARI WEBRTC
+        # =========================
         img = frame.to_ndarray(format="bgr24")
 
+        # =========================
+        # FLIP KAMERA
+        # =========================
         img = cv2.flip(img, 1)
 
-        img = process_frame(img)
+        start_time = time.time()
+
+        label = "-"
+        conf = 0
+
+        try:
+
+            # =========================
+            # DETEKSI WAJAH
+            # =========================
+            face_box = detect_face(img)
+
+            if face_box is not None:
+
+                x1, y1, x2, y2 = face_box
+
+                # =========================
+                # KECILKAN & NAIKKAN BOX
+                # =========================
+                padding_x = 25
+                padding_y_top = 60
+                padding_y_bottom = 20
+
+                x1 += padding_x
+                x2 -= padding_x
+
+                y1 += padding_y_top
+                y2 -= padding_y_bottom
+
+                # =========================
+                # VALIDASI FACE AREA
+                # =========================
+                if x2 > x1 and y2 > y1:
+
+                    face = img[y1:y2, x1:x2]
+
+                    # =========================
+                    # VALIDASI FACE
+                    # =========================
+                    if face.size > 0:
+
+                        # =========================
+                        # PREDIKSI MODEL
+                        # =========================
+                        if model_choice == "MobileNetV3":
+
+                            face_input = preprocess(face)
+
+                            label, conf = predict_mobilenet(
+                                model,
+                                face_input
+                            )
+
+                        else:
+
+                            label, conf = predict_yolo(
+                                model,
+                                face
+                            )
+
+                        # =========================
+                        # WARNA BOX
+                        # =========================
+                        color = (
+                            (0,255,0)
+                            if label == "Fokus"
+                            else (0,0,255)
+                        )
+
+                        # =========================
+                        # BOUNDING BOX
+                        # =========================
+                        cv2.rectangle(
+                            img,
+                            (x1, y1),
+                            (x2, y2),
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # LABEL
+                        # =========================
+                        cv2.putText(
+                            img,
+                            f"{label} {conf:.2f}",
+                            (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.8,
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # SAVE LOG
+                        # =========================
+                        if (
+                            time.time() -
+                            self.last_log_time
+                        ) > 5:
+
+                            save_log(
+                                nama,
+                                npm,
+                                kelas,
+                                label,
+                                conf
+                            )
+
+                            self.last_log_time = time.time()
+
+            # =========================
+            # FPS
+            # =========================
+            fps = 1 / (
+                time.time() - start_time
+            )
+
+            # =========================
+            # INFO BOX
+            # =========================
+            status_placeholder.markdown(f"""
+            ## 📊 Informasi
+
+            - 👤 Nama: **{nama}**
+            - 🧠 Model: **{model_choice}**
+            - 💻 Device: **{device_status}**
+
+            ---
+
+            - 🎯 Status: **{label}**
+            - 📈 Confidence: **{conf:.2f}**
+
+            ---
+
+            - ⚡ FPS: **{fps:.2f}**
+            """)
+
+        except:
+            pass
 
         return av.VideoFrame.from_ndarray(
             img,
@@ -274,66 +308,31 @@ if st.session_state.run:
 
     st.success("Deteksi dimulai...")
 
-    # =========================
-    # WEB CAMERA
-    # =========================
-    if camera_mode == "Web Browser":
+    with col_cam:
 
-        with col_cam:
+        webrtc_streamer(
 
-            webrtc_streamer(
+            key="focus-detection",
 
-                key="focus-detection",
+            video_processor_factory=VideoProcessor,
 
-                video_processor_factory=VideoProcessor,
-
-                media_stream_constraints={
-                    "video": {
-                        "width": 480,
-                        "height": 360
-                    },
-                    "audio": False
+            media_stream_constraints={
+                "video": {
+                    "width": 480,
+                    "height": 360
                 },
+                "audio": False
+            },
 
-                rtc_configuration={
-                    "iceServers": [
-                        {
-                            "urls": [
-                                "stun:stun.l.google.com:19302"
-                            ]
-                        }
-                    ]
-                },
+            rtc_configuration={
+                "iceServers": [
+                    {
+                        "urls": [
+                            "stun:stun.l.google.com:19302"
+                        ]
+                    }
+                ]
+            },
 
-                async_processing=True,
-            )
-
-    # =========================
-    # OBS CAMERA
-    # =========================
-    else:
-
-        with col_cam:
-
-            frame_placeholder = st.empty()
-
-            cap = cv2.VideoCapture(1)
-
-            while st.session_state.run:
-
-                ret, frame = cap.read()
-
-                if not ret:
-                    st.error("OBS Camera tidak ditemukan")
-                    break
-
-                frame = cv2.flip(frame, 1)
-
-                frame = process_frame(frame)
-
-                frame_placeholder.image(
-                    frame,
-                    channels="BGR"
-                )
-
-            cap.release()
+            async_processing=True,
+        )
