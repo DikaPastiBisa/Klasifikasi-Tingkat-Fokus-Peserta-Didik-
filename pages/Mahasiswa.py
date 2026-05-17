@@ -119,8 +119,6 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
-model = None
-
 if model_choice == "MobileNetV3":
 
     model = load_mobilenet(
@@ -162,32 +160,37 @@ def process_frame(img):
             x1, y1, x2, y2 = face_box
 
             # =========================
-            # KECILKAN & NAIKKAN BOX
+            # PRESISI BOX
             # =========================
-            padding_x = 25
-            padding_y_top = 60
-            padding_y_bottom = 20
+            padding_x = 5
+            padding_y = 5
 
             x1 += padding_x
             x2 -= padding_x
 
-            y1 += padding_y_top
-            y2 -= padding_y_bottom
+            y1 += padding_y
+            y2 -= padding_y
 
             # =========================
-            # VALIDASI FACE AREA
+            # LIMIT AGAR TIDAK ERROR
+            # =========================
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+
+            x2 = min(img.shape[1], x2)
+            y2 = min(img.shape[0], y2)
+
+            # =========================
+            # VALIDASI AREA
             # =========================
             if x2 > x1 and y2 > y1:
 
                 face = img[y1:y2, x1:x2]
 
-                # =========================
-                # VALIDASI FACE
-                # =========================
                 if face.size > 0:
 
                     # =========================
-                    # PREDIKSI MODEL
+                    # PREDIKSI
                     # =========================
                     if model_choice == "MobileNetV3":
 
@@ -280,8 +283,7 @@ class VideoProcessor(VideoProcessorBase):
 
         img = frame.to_ndarray(format="bgr24")
 
-        img = cv2.flip(img, 1)
-
+        # TANPA MIRROR
         img = process_frame(img)
 
         return av.VideoFrame.from_ndarray(
@@ -353,8 +355,7 @@ if st.session_state.run:
 
                     break
 
-                frame = cv2.flip(frame, 1)
-
+                # TANPA MIRROR
                 frame = process_frame(frame)
 
                 frame_placeholder.image(
