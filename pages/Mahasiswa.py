@@ -159,9 +159,9 @@ def process_frame(img):
         # =========================
         # PRESISI BOX
         # =========================
-        padding_x = 60
-        padding_y_top = 90
-        padding_y_bottom = 40
+        padding_x = 20
+        padding_y_top = 35
+        padding_y_bottom = 15
 
         x1 += padding_x
         x2 -= padding_x
@@ -169,6 +169,18 @@ def process_frame(img):
         y1 += padding_y_top
         y2 -= padding_y_bottom
 
+        # =========================
+        # LIMIT AGAR TIDAK ERROR
+        # =========================
+        x1 = max(0, x1)
+        y1 = max(0, y1)
+
+        x2 = min(img.shape[1], x2)
+        y2 = min(img.shape[0], y2)
+
+        # =========================
+        # VALIDASI AREA
+        # =========================
         if x2 > x1 and y2 > y1:
 
             face = img[y1:y2, x1:x2]
@@ -195,7 +207,7 @@ def process_frame(img):
                     )
 
                 # =========================
-                # COLOR
+                # WARNA
                 # =========================
                 color = (
                     (0,255,0)
@@ -204,7 +216,7 @@ def process_frame(img):
                 )
 
                 # =========================
-                # BOX
+                # BOUNDING BOX
                 # =========================
                 cv2.rectangle(
                     img,
@@ -265,7 +277,7 @@ def process_frame(img):
     fps = 1 / (time.time() - start_time)
 
     # =========================
-    # INFO
+    # INFO BOX
     # =========================
     status_placeholder.markdown(f"""
     ## 📊 Informasi
