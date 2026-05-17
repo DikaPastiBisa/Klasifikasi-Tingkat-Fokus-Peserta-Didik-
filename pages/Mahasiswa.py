@@ -1,4 +1,3 @@
-
 import streamlit as st
 import cv2
 import time
@@ -161,16 +160,22 @@ def process_frame(img):
             x1, y1, x2, y2 = face_box
 
             # =========================
-            # PRESISI BOX
+            # CENTER FACE
             # =========================
-            padding_x = 15
-            padding_y = 15
+            center_x = int((x1 + x2) / 2)
+            center_y = int((y1 + y2) / 2)
 
-            x1 += padding_x
-            x2 -= padding_x
+            # =========================
+            # FIXED SIZE BOX
+            # =========================
+            box_width = 180
+            box_height = 180
 
-            y1 += padding_y
-            y2 -= padding_y
+            x1 = center_x - box_width // 2
+            x2 = center_x + box_width // 2
+
+            y1 = center_y - box_height // 2
+            y2 = center_y + box_height // 2
 
             # =========================
             # LIMIT AGAR TIDAK ERROR
