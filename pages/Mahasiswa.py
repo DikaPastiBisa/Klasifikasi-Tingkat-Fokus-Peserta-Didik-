@@ -1,3 +1,4 @@
+
 import streamlit as st
 import cv2
 import time
@@ -283,7 +284,11 @@ class VideoProcessor(VideoProcessorBase):
 
         img = frame.to_ndarray(format="bgr24")
 
-        # TANPA MIRROR
+        # =========================
+        # UNMIRROR CAMERA
+        # =========================
+        img = cv2.flip(img, 1)
+
         img = process_frame(img)
 
         return av.VideoFrame.from_ndarray(
@@ -355,7 +360,11 @@ if st.session_state.run:
 
                     break
 
-                # TANPA MIRROR
+                # =========================
+                # UNMIRROR OBS
+                # =========================
+                frame = cv2.flip(frame, 1)
+
                 frame = process_frame(frame)
 
                 frame_placeholder.image(
