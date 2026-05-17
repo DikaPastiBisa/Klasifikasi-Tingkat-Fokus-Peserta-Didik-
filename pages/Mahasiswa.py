@@ -9,7 +9,11 @@ from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 from utils.detection import *
 from utils.logging import *
 
+# =========================
+# INIT
+# =========================
 init_csv()
+
 st.set_page_config(layout="wide")
 
 # =========================
@@ -22,19 +26,27 @@ if "run" not in st.session_state:
 # DEVICE STATUS
 # =========================
 def get_device_status(device_choice):
+
     if device_choice == "GPU":
+
         if torch.cuda.is_available():
             return "GPU (Aktif)"
-        else:
-            return "GPU tidak tersedia ❌ (pakai CPU)"
+
+        return "GPU tidak tersedia ❌ (pakai CPU)"
+
     return "CPU"
 
 # =========================
 # HEADER
 # =========================
 st.markdown("""
-<h1 style='text-align: center;'>🎓 Sistem Deteksi Fokus</h1>
-<p style='text-align: center; color: gray;'>Monitoring fokus mahasiswa secara real-time</p>
+<h1 style='text-align: center;'>
+🎓 Sistem Deteksi Fokus
+</h1>
+
+<p style='text-align: center; color: gray;'>
+Monitoring fokus mahasiswa secara real-time
+</p>
 """, unsafe_allow_html=True)
 
 # =========================
@@ -43,29 +55,43 @@ st.markdown("""
 col1, col2 = st.columns(2)
 
 with col1:
+
     nama = st.text_input("👤 Nama")
+
     npm = st.text_input("🆔 NPM")
+
     kelas = st.text_input("🏫 Kelas")
 
 with col2:
+
     matkul = st.text_input("📘 Mata Kuliah")
-    semester = st.selectbox("📅 Semester", ["1","2","3","4","5","6","7","8"])
+
+    semester = st.selectbox(
+        "📅 Semester",
+        ["1","2","3","4","5","6","7","8"]
+    )
 
 # =========================
 # SETTING
 # =========================
 st.markdown("### ⚙️ Pengaturan")
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
-    camera_index = st.selectbox("📷 Kamera", [0,1,2])
+
+    model_choice = st.selectbox(
+        "🧠 Model",
+        ["MobileNetV3", "YOLOv8"]
+    )
 
 with col2:
-    model_choice = st.selectbox("🧠 Model", ["MobileNetV3", "YOLOv8"])
 
-with col3:
-    device = st.selectbox("💻 Device", ["CPU", "GPU"])
+    device = st.selectbox(
+        "💻 Device",
+        ["CPU", "GPU"]
+    )
+
     device_status = get_device_status(device)
 
 # =========================
@@ -74,10 +100,12 @@ with col3:
 colA, colB = st.columns(2)
 
 with colA:
+
     if st.button("🚀 Mulai Deteksi"):
         st.session_state.run = True
 
 with colB:
+
     if st.button("🛑 Stop"):
         st.session_state.run = False
 
@@ -87,12 +115,19 @@ with colB:
 model = None
 
 if model_choice == "MobileNetV3":
-    model = load_mobilenet("models/model_fokus.tflite")
+
+    model = load_mobilenet(
+        "models/model_fokus.tflite"
+    )
+
 else:
-    model = load_yolo("models/model_yolo_best.pt")
+
+    model = load_yolo(
+        "models/model_yolo_best.pt"
+    )
 
 # =========================
-# INFO BOX
+# LAYOUT
 # =========================
 col_cam, col_info = st.columns([2,1])
 
@@ -104,84 +139,157 @@ info_box = col_info.empty()
 class VideoProcessor(VideoProcessorBase):
 
     def __init__(self):
+
         self.last_log_time = 0
 
     def recv(self, frame):
 
+        # =========================
+        # FRAME DARI WEBRTC
+        # =========================
         img = frame.to_ndarray(format="bgr24")
 
-        start_time = time.time()
+        # =========================
+        # FLIP KAMERA
+        # =========================
+        img = cv2.flip(img, 1)
 
-        face_box = detect_face(img)
+        start_time = time.time()
 
         label = "-"
         conf = 0
 
-        if face_box:
+        try:
 
-            x1, y1, x2, y2 = face_box
+            # =========================
+            # DETEKSI WAJAH
+            # =========================
+            face_box = detect_face(img)
 
-            face = img[y1:y2, x1:x2]
+            if face_box is not None:
 
-            if model_choice == "MobileNetV3":
-                face_input = preprocess(face)
-                label, conf = predict_mobilenet(model, face_input)
-            else:
-                label, conf = predict_yolo(model, face)
+                x1, y1, x2, y2 = face_box
 
-            color = (0,255,0) if label == "Fokus" else (0,0,255)
+                # =========================
+                # VALIDASI FACE AREA
+                # =========================
+                if x2 > x1 and y2 > y1:
 
-            cv2.rectangle(
-                img,
-                (x1, y1),
-                (x2, y2),
-                color,
-                2
+                    face = img[y1:y2, x1:x2]
+
+                    # =========================
+                    # VALIDASI FACE
+                    # =========================
+                    if face.size > 0:
+
+                        # =========================
+                        # PREDIKSI MODEL
+                        # =========================
+                        if model_choice == "MobileNetV3":
+
+                            face_input = preprocess(face)
+
+                            label, conf = predict_mobilenet(
+                                model,
+                                face_input
+                            )
+
+                        else:
+
+                            label, conf = predict_yolo(
+                                model,
+                                face
+                            )
+
+                        # =========================
+                        # WARNA BOX
+                        # =========================
+                        color = (
+                            (0,255,0)
+                            if label == "Fokus"
+                            else (0,0,255)
+                        )
+
+                        # =========================
+                        # BOUNDING BOX
+                        # =========================
+                        cv2.rectangle(
+                            img,
+                            (x1, y1),
+                            (x2, y2),
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # LABEL
+                        # =========================
+                        cv2.putText(
+                            img,
+                            f"{label} {conf:.2f}",
+                            (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.8,
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # SAVE LOG
+                        # =========================
+                        if (
+                            time.time() -
+                            self.last_log_time
+                        ) > 5:
+
+                            save_log(
+                                nama,
+                                npm,
+                                kelas,
+                                label,
+                                conf
+                            )
+
+                            self.last_log_time = time.time()
+
+            # =========================
+            # FPS
+            # =========================
+            fps = 1 / (
+                time.time() - start_time
             )
+
+            # =========================
+            # INFO BOX
+            # =========================
+            info_box.markdown(f"""
+            ### 📊 Informasi
+
+            - 👤 Nama: **{nama}**
+            - 🧠 Model: **{model_choice}**
+            - 💻 Device: **{device_status}**
+
+            ---
+
+            - 🎯 Status: **{label}**
+            - 📈 Confidence: **{conf:.2f}**
+
+            ---
+
+            - ⚡ FPS: **{fps:.2f}**
+            """)
+
+        except Exception as e:
 
             cv2.putText(
                 img,
-                f"{label} {conf:.2f}",
-                (x1, y1 - 10),
+                f"Error: {str(e)}",
+                (20,40),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                color,
+                0.7,
+                (0,0,255),
                 2
             )
-
-            # =========================
-            # SAVE LOG
-            # =========================
-            if time.time() - self.last_log_time > 5:
-
-                save_log(
-                    nama,
-                    npm,
-                    kelas,
-                    label,
-                    conf
-                )
-
-                self.last_log_time = time.time()
-
-        fps = 1 / (time.time() - start_time)
-
-        # =========================
-        # INFO BOX
-        # =========================
-        info_box.markdown(f"""
-        ### 📊 Informasi
-        - 👤 Nama: **{nama}**
-        - 🧠 Model: **{model_choice}**
-        - 💻 Device: **{device_status}**
-
-        ---
-        - 🎯 Status: **{label}**
-        - 📈 Confidence: **{conf:.2f}**
-
-        ---
-        - ⚡ FPS: **{fps:.2f}**
-        """)
 
         return av.VideoFrame.from_ndarray(
             img,
@@ -197,10 +305,16 @@ if st.session_state.run:
 
     webrtc_streamer(
         key="focus-detection",
+
         video_processor_factory=VideoProcessor,
+
         media_stream_constraints={
-            "video": True,
+            "video": {
+                "width": 640,
+                "height": 480
+            },
             "audio": False
         },
+
         async_processing=True,
     )
