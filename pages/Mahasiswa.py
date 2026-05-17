@@ -129,7 +129,7 @@ else:
 # =========================
 # LAYOUT
 # =========================
-col_cam, col_info = st.columns([2,1])
+col_cam, col_info = st.columns([3,1])
 
 info_box = col_info.empty()
 
@@ -263,7 +263,7 @@ class VideoProcessor(VideoProcessorBase):
             # INFO BOX
             # =========================
             info_box.markdown(f"""
-            ### 📊 Informasi
+            ## 📊 Informasi
 
             - 👤 Nama: **{nama}**
             - 🧠 Model: **{model_choice}**
@@ -279,17 +279,8 @@ class VideoProcessor(VideoProcessorBase):
             - ⚡ FPS: **{fps:.2f}**
             """)
 
-        except Exception as e:
-
-            cv2.putText(
-                img,
-                f"Error: {str(e)}",
-                (20,40),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
-                (0,0,255),
-                2
-            )
+        except:
+            pass
 
         return av.VideoFrame.from_ndarray(
             img,
@@ -303,26 +294,31 @@ if st.session_state.run:
 
     st.success("Deteksi dimulai...")
 
-    webrtc_streamer(
+    with col_cam:
 
-        key="focus-detection",
+        webrtc_streamer(
 
-        video_processor_factory=VideoProcessor,
+            key="focus-detection",
 
-        media_stream_constraints={
-            "video": True,
-            "audio": False
-        },
+            video_processor_factory=VideoProcessor,
 
-        rtc_configuration={
-            "iceServers": [
-                {
-                    "urls": [
-                        "stun:stun.l.google.com:19302"
-                    ]
-                }
-            ]
-        },
+            media_stream_constraints={
+                "video": {
+                    "width": 640,
+                    "height": 480
+                },
+                "audio": False
+            },
 
-        async_processing=True,
-    )
+            rtc_configuration={
+                "iceServers": [
+                    {
+                        "urls": [
+                            "stun:stun.l.google.com:19302"
+                        ]
+                    }
+                ]
+            },
+
+            async_processing=True,
+        )
