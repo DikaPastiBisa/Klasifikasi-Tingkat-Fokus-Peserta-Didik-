@@ -1,0 +1,159 @@
+import streamlit as st
+import cv2
+import time
+import torch
+
+from utils.detection import *
+from utils.logging import *
+
+init_csv()
+st.set_page_config(layout="wide")
+
+# =========================
+# STATE (BIAR STOP WORK)
+# =========================
+if "run" not in st.session_state:
+    st.session_state.run = False
+
+# =========================
+# DEVICE STATUS
+# =========================
+def get_device_status(device_choice):
+    if device_choice == "GPU":
+        if torch.cuda.is_available():
+            return "GPU (Aktif)"
+        else:
+            return "GPU tidak tersedia ❌ (pakai CPU)"
+    return "CPU"
+
+# =========================
+# HEADER
+# =========================
+st.markdown("""
+<h1 style='text-align: center;'>🎓 Sistem Deteksi Fokus</h1>
+<p style='text-align: center; color: gray;'>Monitoring fokus mahasiswa secara real-time</p>
+""", unsafe_allow_html=True)
+
+# =========================
+# INPUT
+# =========================
+col1, col2 = st.columns(2)
+
+with col1:
+    nama = st.text_input("👤 Nama")
+    npm = st.text_input("🆔 NPM")
+    kelas = st.text_input("🏫 Kelas")
+
+with col2:
+    matkul = st.text_input("📘 Mata Kuliah")
+    semester = st.selectbox("📅 Semester", ["1","2","3","4","5","6","7","8"])
+
+# =========================
+# SETTING
+# =========================
+st.markdown("### ⚙️ Pengaturan")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    camera_index = st.selectbox("📷 Kamera", [0,1,2])
+
+with col2:
+    model_choice = st.selectbox("🧠 Model", ["MobileNetV3", "YOLOv8"])
+
+with col3:
+    device = st.selectbox("💻 Device", ["CPU", "GPU"])
+    device_status = get_device_status(device)
+
+# =========================
+# BUTTON
+# =========================
+colA, colB = st.columns(2)
+
+with colA:
+    if st.button("🚀 Mulai Deteksi"):
+        st.session_state.run = True
+
+with colB:
+    if st.button("🛑 Stop"):
+        st.session_state.run = False
+
+# =========================
+# DETEKSI
+# =========================
+if st.session_state.run:
+
+    st.success("Deteksi dimulai...")
+
+    cap = cv2.VideoCapture(camera_index)
+
+    if model_choice == "MobileNetV3":
+        model = load_mobilenet("models/model_fokus.tflite")
+    else:
+        model = load_yolo("models/model_yolo_best.pt")
+
+    col_cam, col_info = st.columns([2,1])
+
+    frame_placeholder = col_cam.empty()
+    info_box = col_info.empty()
+
+    last_log_time = 0
+
+    while st.session_state.run:
+
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        start_time = time.time()
+
+        face_box = detect_face(frame)
+
+        label = "-"
+        conf = 0
+
+        if face_box:
+            x1, y1, x2, y2 = face_box
+            face = frame[y1:y2, x1:x2]
+
+            if model_choice == "MobileNetV3":
+                face_input = preprocess(face)
+                label, conf = predict_mobilenet(model, face_input)
+            else:
+                label, conf = predict_yolo(model, face)
+
+            color = (0,255,0) if label == "Fokus" else (0,0,255)
+
+            cv2.rectangle(frame, (x1,y1), (x2,y2), color, 2)
+
+            cv2.putText(frame, f"{label} {conf:.2f}",
+                        (x1, y1-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+
+            # LOG tiap 5 detik
+            if time.time() - last_log_time > 5:
+                save_log(nama, npm, kelas, label, conf)
+                last_log_time = time.time()
+
+        fps = 1 / (time.time() - start_time)
+
+        # ======================
+        # INFO BOX
+        # ======================
+        info_box.markdown(f"""
+        ### 📊 Informasi
+        - 👤 Nama: **{nama}**
+        - 🧠 Model: **{model_choice}**
+        - 💻 Device: **{device_status}**
+
+        ---
+        - 🎯 Status: **{label}**
+        - 📈 Confidence: **{conf:.2f}**
+
+        ---
+        - ⚡ FPS: **{fps:.2f}**
+        """)
+
+        frame_placeholder.image(frame, channels="BGR")
+
+    cap.release()
