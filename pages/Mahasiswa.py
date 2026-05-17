@@ -119,8 +119,6 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
-model = None
-
 if model_choice == "MobileNetV3":
 
     model = load_mobilenet(
@@ -150,25 +148,21 @@ def process_frame(img):
     label = "-"
     conf = 0
 
+    # =========================
+    # DETEKSI WAJAH
+    # =========================
     face_box = detect_face(img)
 
     if face_box is not None:
 
+        # =========================
+        # BOX ORIGINAL
+        # =========================
         x1, y1, x2, y2 = face_box
 
         # =========================
-        # PRESISI BOX
+        # VALIDASI AREA
         # =========================
-        padding_x = 60
-        padding_y_top = 90
-        padding_y_bottom = 40
-
-        x1 += padding_x
-        x2 -= padding_x
-
-        y1 += padding_y_top
-        y2 -= padding_y_bottom
-
         if x2 > x1 and y2 > y1:
 
             face = img[y1:y2, x1:x2]
@@ -195,7 +189,7 @@ def process_frame(img):
                     )
 
                 # =========================
-                # COLOR
+                # WARNA BOX
                 # =========================
                 color = (
                     (0,255,0)
@@ -204,7 +198,7 @@ def process_frame(img):
                 )
 
                 # =========================
-                # BOX
+                # BOUNDING BOX
                 # =========================
                 cv2.rectangle(
                     img,
@@ -227,45 +221,13 @@ def process_frame(img):
                     2
                 )
 
-                # =========================
-                # CENTER POINT
-                # =========================
-                center_x = int((x1 + x2) / 2)
-                center_y = int((y1 + y2) / 2)
-
-                cv2.circle(
-                    img,
-                    (center_x, center_y),
-                    5,
-                    (0,255,255),
-                    -1
-                )
-
-                # garis horizontal
-                cv2.line(
-                    img,
-                    (center_x - 20, center_y),
-                    (center_x + 20, center_y),
-                    (0,255,255),
-                    2
-                )
-
-                # garis vertikal
-                cv2.line(
-                    img,
-                    (center_x, center_y - 20),
-                    (center_x, center_y + 20),
-                    (0,255,255),
-                    2
-                )
-
     # =========================
     # FPS
     # =========================
     fps = 1 / (time.time() - start_time)
 
     # =========================
-    # INFO
+    # INFO BOX
     # =========================
     status_placeholder.markdown(f"""
     ## 📊 Informasi
@@ -313,7 +275,7 @@ if st.session_state.run:
     st.success("Deteksi dimulai...")
 
     # =========================
-    # WEB BROWSER CAMERA
+    # WEB CAMERA
     # =========================
     if camera_mode == "Web Browser":
 
