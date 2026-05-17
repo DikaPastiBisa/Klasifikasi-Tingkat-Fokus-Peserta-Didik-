@@ -119,6 +119,8 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
+model = None
+
 if model_choice == "MobileNetV3":
 
     model = load_mobilenet(
@@ -157,24 +159,15 @@ def process_frame(img):
         # =========================
         # PRESISI BOX
         # =========================
-        padding_x = 20
-        padding_y_top = 35
-        padding_y_bottom = 15
+        padding_x = 60
+        padding_y_top = 90
+        padding_y_bottom = 40
 
         x1 += padding_x
         x2 -= padding_x
 
         y1 += padding_y_top
         y2 -= padding_y_bottom
-
-        # =========================
-        # LIMIT AGAR TIDAK ERROR
-        # =========================
-        x1 = max(0, x1)
-        y1 = max(0, y1)
-
-        x2 = min(img.shape[1], x2)
-        y2 = min(img.shape[0], y2)
 
         if x2 > x1 and y2 > y1:
 
@@ -201,6 +194,9 @@ def process_frame(img):
                         face
                     )
 
+                # =========================
+                # COLOR
+                # =========================
                 color = (
                     (0,255,0)
                     if label == "Fokus"
@@ -245,6 +241,7 @@ def process_frame(img):
                     -1
                 )
 
+                # garis horizontal
                 cv2.line(
                     img,
                     (center_x - 20, center_y),
@@ -253,6 +250,7 @@ def process_frame(img):
                     2
                 )
 
+                # garis vertikal
                 cv2.line(
                     img,
                     (center_x, center_y - 20),
@@ -267,7 +265,7 @@ def process_frame(img):
     fps = 1 / (time.time() - start_time)
 
     # =========================
-    # INFO BOX
+    # INFO
     # =========================
     status_placeholder.markdown(f"""
     ## 📊 Informasi
@@ -315,7 +313,7 @@ if st.session_state.run:
     st.success("Deteksi dimulai...")
 
     # =========================
-    # WEB CAMERA
+    # WEB BROWSER CAMERA
     # =========================
     if camera_mode == "Web Browser":
 
