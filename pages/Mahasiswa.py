@@ -304,16 +304,24 @@ if st.session_state.run:
     st.success("Deteksi dimulai...")
 
     webrtc_streamer(
+
         key="focus-detection",
 
         video_processor_factory=VideoProcessor,
 
         media_stream_constraints={
-            "video": {
-                "width": 640,
-                "height": 480
-            },
+            "video": True,
             "audio": False
+        },
+
+        rtc_configuration={
+            "iceServers": [
+                {
+                    "urls": [
+                        "stun:stun.l.google.com:19302"
+                    ]
+                }
+            ]
         },
 
         async_processing=True,
