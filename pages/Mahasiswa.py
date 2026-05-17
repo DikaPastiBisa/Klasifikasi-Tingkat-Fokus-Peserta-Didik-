@@ -129,7 +129,7 @@ else:
 # =========================
 # LAYOUT
 # =========================
-col_cam, col_info = st.columns([3,1])
+col_cam, col_info = st.columns([2,1])
 
 info_box = col_info.empty()
 
@@ -169,6 +169,17 @@ class VideoProcessor(VideoProcessorBase):
             if face_box is not None:
 
                 x1, y1, x2, y2 = face_box
+
+                # =========================
+                # KECILKAN BOX
+                # =========================
+                padding = 25
+
+                x1 += padding
+                y1 += padding
+
+                x2 -= padding
+                y2 -= padding
 
                 # =========================
                 # VALIDASI FACE AREA
@@ -304,8 +315,8 @@ if st.session_state.run:
 
             media_stream_constraints={
                 "video": {
-                    "width": 640,
-                    "height": 480
+                    "width": 480,
+                    "height": 360
                 },
                 "audio": False
             },
