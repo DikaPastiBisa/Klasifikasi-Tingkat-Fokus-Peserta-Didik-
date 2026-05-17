@@ -2,6 +2,9 @@ import streamlit as st
 import cv2
 import time
 import torch
+import av
+
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
 from utils.detection import *
 from utils.logging import *
@@ -10,7 +13,7 @@ init_csv()
 st.set_page_config(layout="wide")
 
 # =========================
-# STATE (BIAR STOP WORK)
+# STATE
 # =========================
 if "run" not in st.session_state:
     st.session_state.run = False
@@ -79,42 +82,46 @@ with colB:
         st.session_state.run = False
 
 # =========================
-# DETEKSI
+# LOAD MODEL
 # =========================
-if st.session_state.run:
+model = None
 
-    st.success("Deteksi dimulai...")
+if model_choice == "MobileNetV3":
+    model = load_mobilenet("models/model_fokus.tflite")
+else:
+    model = load_yolo("models/model_yolo_best.pt")
 
-    cap = cv2.VideoCapture(camera_index)
+# =========================
+# INFO BOX
+# =========================
+col_cam, col_info = st.columns([2,1])
 
-    if model_choice == "MobileNetV3":
-        model = load_mobilenet("models/model_fokus.tflite")
-    else:
-        model = load_yolo("models/model_yolo_best.pt")
+info_box = col_info.empty()
 
-    col_cam, col_info = st.columns([2,1])
+# =========================
+# VIDEO PROCESSOR
+# =========================
+class VideoProcessor(VideoProcessorBase):
 
-    frame_placeholder = col_cam.empty()
-    info_box = col_info.empty()
+    def __init__(self):
+        self.last_log_time = 0
 
-    last_log_time = 0
+    def recv(self, frame):
 
-    while st.session_state.run:
-
-        ret, frame = cap.read()
-        if not ret:
-            break
+        img = frame.to_ndarray(format="bgr24")
 
         start_time = time.time()
 
-        face_box = detect_face(frame)
+        face_box = detect_face(img)
 
         label = "-"
         conf = 0
 
         if face_box:
+
             x1, y1, x2, y2 = face_box
-            face = frame[y1:y2, x1:x2]
+
+            face = img[y1:y2, x1:x2]
 
             if model_choice == "MobileNetV3":
                 face_input = preprocess(face)
@@ -124,22 +131,44 @@ if st.session_state.run:
 
             color = (0,255,0) if label == "Fokus" else (0,0,255)
 
-            cv2.rectangle(frame, (x1,y1), (x2,y2), color, 2)
+            cv2.rectangle(
+                img,
+                (x1, y1),
+                (x2, y2),
+                color,
+                2
+            )
 
-            cv2.putText(frame, f"{label} {conf:.2f}",
-                        (x1, y1-10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+            cv2.putText(
+                img,
+                f"{label} {conf:.2f}",
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                color,
+                2
+            )
 
-            # LOG tiap 5 detik
-            if time.time() - last_log_time > 5:
-                save_log(nama, npm, kelas, label, conf)
-                last_log_time = time.time()
+            # =========================
+            # SAVE LOG
+            # =========================
+            if time.time() - self.last_log_time > 5:
+
+                save_log(
+                    nama,
+                    npm,
+                    kelas,
+                    label,
+                    conf
+                )
+
+                self.last_log_time = time.time()
 
         fps = 1 / (time.time() - start_time)
 
-        # ======================
+        # =========================
         # INFO BOX
-        # ======================
+        # =========================
         info_box.markdown(f"""
         ### 📊 Informasi
         - 👤 Nama: **{nama}**
@@ -154,6 +183,24 @@ if st.session_state.run:
         - ⚡ FPS: **{fps:.2f}**
         """)
 
-        frame_placeholder.image(frame, channels="BGR")
+        return av.VideoFrame.from_ndarray(
+            img,
+            format="bgr24"
+        )
 
-    cap.release()
+# =========================
+# DETEKSI
+# =========================
+if st.session_state.run:
+
+    st.success("Deteksi dimulai...")
+
+    webrtc_streamer(
+        key="focus-detection",
+        video_processor_factory=VideoProcessor,
+        media_stream_constraints={
+            "video": True,
+            "audio": False
+        },
+        async_processing=True,
+    )
