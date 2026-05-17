@@ -163,8 +163,8 @@ def process_frame(img):
             # =========================
             # PRESISI BOX
             # =========================
-            padding_x = 5
-            padding_y = 5
+            padding_x = 15
+            padding_y = 15
 
             x1 += padding_x
             x2 -= padding_x
