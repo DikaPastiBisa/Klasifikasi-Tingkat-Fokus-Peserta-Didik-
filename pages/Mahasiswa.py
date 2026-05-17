@@ -132,6 +132,7 @@ else:
 col_cam, col_info = st.columns([2,1])
 
 info_box = col_info.empty()
+status_placeholder = col_info.empty()
 
 # =========================
 # VIDEO PROCESSOR
@@ -171,15 +172,17 @@ class VideoProcessor(VideoProcessorBase):
                 x1, y1, x2, y2 = face_box
 
                 # =========================
-                # KECILKAN BOX
+                # KECILKAN & NAIKKAN BOX
                 # =========================
-                padding = 25
+                padding_x = 25
+                padding_y_top = 60
+                padding_y_bottom = 20
 
-                x1 += padding
-                y1 += padding
+                x1 += padding_x
+                x2 -= padding_x
 
-                x2 -= padding
-                y2 -= padding
+                y1 += padding_y_top
+                y2 -= padding_y_bottom
 
                 # =========================
                 # VALIDASI FACE AREA
@@ -273,7 +276,7 @@ class VideoProcessor(VideoProcessorBase):
             # =========================
             # INFO BOX
             # =========================
-            info_box.markdown(f"""
+            status_placeholder.markdown(f"""
             ## 📊 Informasi
 
             - 👤 Nama: **{nama}**
