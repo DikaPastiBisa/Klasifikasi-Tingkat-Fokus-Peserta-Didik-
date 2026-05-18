@@ -3,6 +3,7 @@ import cv2
 import time
 import torch
 import av
+import json
 
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
@@ -15,6 +16,23 @@ from utils.logging import *
 init_csv()
 
 st.set_page_config(layout="wide")
+
+# =========================
+# CONTROL DETEKSI DOSEN
+# =========================
+def get_detection_status():
+
+    try:
+
+        with open("control.json", "r") as f:
+
+            data = json.load(f)
+
+            return data.get("run", False)
+
+    except:
+
+        return False
 
 # =========================
 # STATE
@@ -246,6 +264,19 @@ def process_frame(img):
                         color,
                         2
                     )
+
+                    # =========================
+                    # SAVE LOG KE DOSEN
+                    # =========================
+                    if get_detection_status():
+
+                        save_log(
+                            nama,
+                            npm,
+                            kelas,
+                            label,
+                            conf
+                        )
 
         # =========================
         # FPS
