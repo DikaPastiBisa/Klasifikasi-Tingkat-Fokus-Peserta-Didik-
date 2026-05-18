@@ -24,11 +24,13 @@ def get_detection_status():
 
     try:
 
-        with open("control.json", "r") as f:
+        with open("./control.json", "r") as f:
 
             data = json.load(f)
 
-            return data.get("run", False)
+            status = data.get("run", False)
+
+            return status
 
     except:
 
@@ -130,12 +132,24 @@ colA, colB = st.columns(2)
 with colA:
 
     if st.button("🚀 Mulai Deteksi"):
-        st.session_state.run = True
+
+        if nama == "" or npm == "" or kelas == "":
+
+            st.warning(
+                "Nama, NPM, dan Kelas wajib diisi"
+            )
+
+        else:
+
+            st.session_state.run = True
 
 with colB:
 
     if st.button("🛑 Stop"):
+
         st.session_state.run = False
+
+        cv2.destroyAllWindows()
 
 # =========================
 # LOAD MODEL
@@ -214,7 +228,7 @@ def process_frame(img):
 
                 face = img[y1:y2, x1:x2]
 
-                if face.size > 0:
+                if face is not None and face.size > 0:
 
                     # =========================
                     # PREDIKSI
@@ -272,27 +286,31 @@ def process_frame(img):
                     # SAVE LOG TIAP 5 DETIK
                     # =========================
                     current_time = time.time()
-                    
+
                     if (
                         get_detection_status()
                         and current_time - st.session_state.last_log_time >= 5
                     ):
-                    
+
                         save_log(
-                            nama,
-                            npm,
-                            kelas,
+                            nama.strip(),
+                            npm.strip(),
+                            kelas.strip(),
                             label,
-                            conf
+                            round(float(conf), 2)
                         )
-                    
+
                         st.session_state.last_log_time = current_time
 
         # =========================
         # FPS
         # =========================
-        fps = 1 / (
-            time.time() - start_time
+        elapsed_time = time.time() - start_time
+
+        fps = (
+            1 / elapsed_time
+            if elapsed_time > 0
+            else 0
         )
 
         # =========================
