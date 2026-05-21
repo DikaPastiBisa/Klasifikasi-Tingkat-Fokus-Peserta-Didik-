@@ -14,19 +14,27 @@ def set_detection(state):
             f
         )
 
+    st.session_state.deteksi = state
+
 # =========================
 # CONFIG
 # =========================
 st.set_page_config(layout="wide")
 
 # =========================
+# SESSION STATE
+# =========================
+if "login" not in st.session_state:
+    st.session_state.login = False
+
+if "deteksi" not in st.session_state:
+    st.session_state.deteksi = False
+
+# =========================
 # LOGIN DOSEN
 # =========================
 USERNAME = "dosen"
 PASSWORD = "12345"
-
-if "login" not in st.session_state:
-    st.session_state.login = False
 
 # =========================
 # FORM LOGIN
@@ -110,9 +118,6 @@ else:
 
         df = pd.read_csv("./data_log.csv")
 
-        # =========================
-        # VALIDASI DATA
-        # =========================
         if df.empty:
 
             st.warning(
