@@ -1,39 +1,96 @@
-import csv
+import pandas as pd
 import os
-import time
-import json
+from datetime import datetime
 
-FILE = "data_log.csv"
+CSV_FILE = "./data_log.csv"
 
+# =========================
+# INIT CSV
+# =========================
 def init_csv():
-    if not os.path.exists(FILE):
-        with open(FILE, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["Waktu","Nama","NPM","Kelas","Status","Confidence"])
 
-def save_log(nama, npm, kelas, status, conf):
-     # 🔥 CEK APAKAH DETEKSI AKTIF
-    if not is_detection_active():
-        return
+    if not os.path.exists(CSV_FILE):
 
-    import csv
-    from datetime import datetime
-
-    with open("data_log.csv", mode="a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([
-            datetime.now().strftime("%H:%M:%S"),
-            nama,
-            npm,
-            kelas,
-            status,
-            conf
+        df = pd.DataFrame(columns=[
+            "nama",
+            "npm",
+            "kelas",
+            "status",
+            "confidence",
+            "timestamp"
         ])
 
-def is_detection_active():
+        df.to_csv(
+            CSV_FILE,
+            index=False
+        )
+
+# =========================
+# SAVE LOG
+# =========================
+def save_log(
+    nama,
+    npm,
+    kelas,
+    status,
+    confidence
+):
+
     try:
-        with open("control.json", "r") as f:
-            data = json.load(f)
-            return data.get("run", False)
-    except:
-        return False
+
+        # =========================
+        # BACA FILE LAMA
+        # =========================
+        if os.path.exists(CSV_FILE):
+
+            df = pd.read_csv(CSV_FILE)
+
+        else:
+
+            df = pd.DataFrame(columns=[
+                "nama",
+                "npm",
+                "kelas",
+                "status",
+                "confidence",
+                "timestamp"
+            ])
+
+        # =========================
+        # DATA BARU
+        # =========================
+        new_data = pd.DataFrame([{
+
+            "nama": nama,
+
+            "npm": npm,
+
+            "kelas": kelas,
+
+            "status": status,
+
+            "confidence": confidence,
+
+            "timestamp": datetime.now()
+
+        }])
+
+        # =========================
+        # GABUNGKAN
+        # =========================
+        df = pd.concat(
+            [df, new_data],
+            ignore_index=True
+        )
+
+        # =========================
+        # SIMPAN
+        # =========================
+        df.to_csv(
+            CSV_FILE,
+            index=False
+        )
+
+    except Exception as e:
+
+        print("ERROR SAVE LOG:", e)
