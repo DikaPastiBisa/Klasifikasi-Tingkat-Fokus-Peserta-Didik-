@@ -250,6 +250,7 @@ def process_frame(img):
                             label,
                             round(float(conf), 2)
                         )
+                        st.success("LOG BERHASIL DISIMPAN")
 
                         st.session_state.last_log_time = current_time
 
@@ -282,8 +283,9 @@ def process_frame(img):
         - ⚡ FPS: **{fps:.2f}**
         """)
 
-    except:
-        pass
+    except Exception as e:
+
+    st.error(f"ERROR: {e}")
 
     return img
 
