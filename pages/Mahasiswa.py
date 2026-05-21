@@ -128,7 +128,23 @@ with colA:
 
     if st.button("🚀 Mulai Deteksi"):
 
-        st.session_state.run = True
+        # =========================
+        # VALIDASI INPUT
+        # =========================
+        if (
+            nama.strip() == ""
+            or npm.strip() == ""
+            or kelas.strip() == ""
+            or matkul.strip() == ""
+        ):
+
+            st.warning(
+                "Nama, NPM, Kelas, dan Mata Kuliah wajib diisi!"
+            )
+
+        else:
+
+            st.session_state.run = True
 
 with colB:
 
