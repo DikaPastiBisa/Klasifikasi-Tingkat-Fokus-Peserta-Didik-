@@ -74,7 +74,7 @@ else:
     # LOAD DATA
     # =========================
     try:
-        df = pd.read_csv("data_log.csv")
+        pd.read_csv("./data_log.csv")
 
         if df.empty:
             st.warning("Belum ada data")
