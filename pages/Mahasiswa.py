@@ -3,6 +3,7 @@ import cv2
 import time
 import torch
 import av
+import json
 
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
@@ -17,13 +18,27 @@ init_csv()
 st.set_page_config(layout="wide")
 
 # =========================
+# CONTROL DETEKSI DOSEN
+# =========================
+def get_detection_status():
+
+    try:
+
+        with open("control.json", "r") as f:
+
+            data = json.load(f)
+
+            return data.get("run", False)
+
+    except:
+
+        return False
+
+# =========================
 # STATE
 # =========================
 if "run" not in st.session_state:
     st.session_state.run = False
-
-if "last_log_time" not in st.session_state:
-    st.session_state.last_log_time = 0
 
 # =========================
 # DEVICE STATUS
@@ -35,7 +50,7 @@ def get_device_status(device_choice):
         if torch.cuda.is_available():
             return "GPU (Aktif)"
 
-        return "GPU tidak tersedia ❌"
+        return "GPU tidak tersedia ❌ (pakai CPU)"
 
     return "CPU"
 
@@ -112,21 +127,11 @@ colA, colB = st.columns(2)
 with colA:
 
     if st.button("🚀 Mulai Deteksi"):
-
-        if nama == "" or npm == "" or kelas == "":
-
-            st.warning(
-                "Nama, NPM, dan Kelas wajib diisi"
-            )
-
-        else:
-
-            st.session_state.run = True
+        st.session_state.run = True
 
 with colB:
 
     if st.button("🛑 Stop"):
-
         st.session_state.run = False
 
 # =========================
@@ -163,15 +168,24 @@ def process_frame(img):
 
     try:
 
+        # =========================
+        # DETEKSI WAJAH
+        # =========================
         face_box = detect_face(img)
 
         if face_box is not None:
 
             x1, y1, x2, y2 = face_box
 
+            # =========================
+            # CENTER FACE
+            # =========================
             center_x = int((x1 + x2) / 2)
             center_y = int((y1 + y2) / 2)
 
+            # =========================
+            # FIXED SIZE BOX
+            # =========================
             box_width = 180
             box_height = 180
 
@@ -181,17 +195,23 @@ def process_frame(img):
             y1 = center_y - box_height // 2
             y2 = center_y + box_height // 2
 
+            # =========================
+            # LIMIT AGAR TIDAK ERROR
+            # =========================
             x1 = max(0, x1)
             y1 = max(0, y1)
 
             x2 = min(img.shape[1], x2)
             y2 = min(img.shape[0], y2)
 
+            # =========================
+            # VALIDASI AREA
+            # =========================
             if x2 > x1 and y2 > y1:
 
                 face = img[y1:y2, x1:x2]
 
-                if face is not None and face.size > 0:
+                if face.size > 0:
 
                     # =========================
                     # PREDIKSI
@@ -246,38 +266,23 @@ def process_frame(img):
                     )
 
                     # =========================
-                    # SAVE LOG TIAP 5 DETIK
+                    # SAVE LOG KE DOSEN
                     # =========================
-                    current_time = time.time()
-
-                    if (
-                        current_time
-                        - st.session_state.last_log_time >= 5
-                    ):
+                    if get_detection_status():
 
                         save_log(
-                            nama.strip(),
-                            npm.strip(),
-                            kelas.strip(),
+                            nama,
+                            npm,
+                            kelas,
                             label,
-                            round(float(conf), 2)
+                            conf
                         )
-
-                        st.success(
-                            "LOG BERHASIL DISIMPAN"
-                        )
-
-                        st.session_state.last_log_time = current_time
 
         # =========================
         # FPS
         # =========================
-        elapsed_time = time.time() - start_time
-
-        fps = (
-            1 / elapsed_time
-            if elapsed_time > 0
-            else 0
+        fps = 1 / (
+            time.time() - start_time
         )
 
         # =========================
@@ -301,14 +306,13 @@ def process_frame(img):
         - ⚡ FPS: **{fps:.2f}**
         """)
 
-    except Exception as e:
-
-        st.error(f"ERROR: {e}")
+    except:
+        pass
 
     return img
 
 # =========================
-# VIDEO PROCESSOR
+# WEBRTC PROCESSOR
 # =========================
 class VideoProcessor(VideoProcessorBase):
 
@@ -316,6 +320,9 @@ class VideoProcessor(VideoProcessorBase):
 
         img = frame.to_ndarray(format="bgr24")
 
+        # =========================
+        # UNMIRROR CAMERA
+        # =========================
         img = cv2.flip(img, 1)
 
         img = process_frame(img)
@@ -389,6 +396,9 @@ if st.session_state.run:
 
                     break
 
+                # =========================
+                # UNMIRROR OBS
+                # =========================
                 frame = cv2.flip(frame, 1)
 
                 frame = process_frame(frame)
