@@ -73,12 +73,13 @@ else:
     # =========================
     # LOAD DATA
     # =========================
-    try:
-        pd.read_csv("./data_log.csv")
+try:
 
-        if df.empty:
-            st.warning("Belum ada data")
-            st.stop()
+    df = pd.read_csv("./data_log.csv")
+
+    if df.empty:
+        st.warning("Belum ada data")
+        st.stop()
 
         # =========================
         # FILTER KELAS
