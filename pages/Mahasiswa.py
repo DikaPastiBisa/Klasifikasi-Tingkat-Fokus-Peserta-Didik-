@@ -40,6 +40,9 @@ def get_detection_status():
 if "run" not in st.session_state:
     st.session_state.run = False
 
+if "last_detection_time" not in st.session_state:
+    st.session_state.last_detection_time = 0
+
 # =========================
 # DEVICE STATUS
 # =========================
@@ -284,23 +287,32 @@ def process_frame(img):
                     )
 
                     # =========================
-                    # SAVE LOG KE DOSEN
+                    # SAVE LOG TIAP 5 DETIK
                     # =========================
-                    if get_detection_status():
+                    current_time = time.time()
 
-                        if (
-                            nama != ""
-                            and npm != ""
-                            and kelas != ""
-                        ):
+                    if (
+                        current_time
+                        - st.session_state.last_detection_time >= 5
+                    ):
 
-                            save_log(
-                                nama.strip(),
-                                npm.strip(),
-                                kelas.strip(),
-                                label,
-                                round(float(conf), 2)
-                            )
+                        if get_detection_status():
+
+                            if (
+                                nama != ""
+                                and npm != ""
+                                and kelas != ""
+                            ):
+
+                                save_log(
+                                    nama.strip(),
+                                    npm.strip(),
+                                    kelas.strip(),
+                                    label,
+                                    round(float(conf), 2)
+                                )
+
+                                st.session_state.last_detection_time = current_time
 
         # =========================
         # FPS
