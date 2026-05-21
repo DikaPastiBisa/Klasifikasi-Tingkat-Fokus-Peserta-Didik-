@@ -193,6 +193,9 @@ def process_frame(img):
 
                 if face is not None and face.size > 0:
 
+                    # =========================
+                    # PREDIKSI
+                    # =========================
                     if model_choice == "MobileNetV3":
 
                         face_input = preprocess(face)
@@ -209,12 +212,18 @@ def process_frame(img):
                             face
                         )
 
+                    # =========================
+                    # WARNA BOX
+                    # =========================
                     color = (
                         (0,255,0)
                         if label == "Fokus"
                         else (0,0,255)
                     )
 
+                    # =========================
+                    # BOUNDING BOX
+                    # =========================
                     cv2.rectangle(
                         img,
                         (x1, y1),
@@ -223,6 +232,9 @@ def process_frame(img):
                         2
                     )
 
+                    # =========================
+                    # LABEL
+                    # =========================
                     cv2.putText(
                         img,
                         f"{label} {conf:.2f}",
@@ -250,10 +262,16 @@ def process_frame(img):
                             label,
                             round(float(conf), 2)
                         )
-                        st.success("LOG BERHASIL DISIMPAN")
+
+                        st.success(
+                            "LOG BERHASIL DISIMPAN"
+                        )
 
                         st.session_state.last_log_time = current_time
 
+        # =========================
+        # FPS
+        # =========================
         elapsed_time = time.time() - start_time
 
         fps = (
@@ -285,7 +303,7 @@ def process_frame(img):
 
     except Exception as e:
 
-    st.error(f"ERROR: {e}")
+        st.error(f"ERROR: {e}")
 
     return img
 
