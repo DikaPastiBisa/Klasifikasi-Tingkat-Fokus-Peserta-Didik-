@@ -127,11 +127,13 @@ colA, colB = st.columns(2)
 with colA:
 
     if st.button("🚀 Mulai Deteksi"):
+
         st.session_state.run = True
 
 with colB:
 
     if st.button("🛑 Stop"):
+
         st.session_state.run = False
 
 # =========================
@@ -270,13 +272,19 @@ def process_frame(img):
                     # =========================
                     if get_detection_status():
 
-                        save_log(
-                            nama,
-                            npm,
-                            kelas,
-                            label,
-                            conf
-                        )
+                        if (
+                            nama != ""
+                            and npm != ""
+                            and kelas != ""
+                        ):
+
+                            save_log(
+                                nama.strip(),
+                                npm.strip(),
+                                kelas.strip(),
+                                label,
+                                round(float(conf), 2)
+                            )
 
         # =========================
         # FPS
@@ -306,8 +314,9 @@ def process_frame(img):
         - ⚡ FPS: **{fps:.2f}**
         """)
 
-    except:
-        pass
+    except Exception as e:
+
+        st.error(f"ERROR: {e}")
 
     return img
 
