@@ -40,9 +40,6 @@ def get_detection_status():
 if "run" not in st.session_state:
     st.session_state.run = False
 
-if "last_detection_time" not in st.session_state:
-    st.session_state.last_detection_time = 0
-
 # =========================
 # DEVICE STATUS
 # =========================
@@ -178,180 +175,13 @@ col_cam, col_info = st.columns([2,1])
 status_placeholder = col_info.empty()
 
 # =========================
-# PROCESS FRAME
-# =========================
-def process_frame(img):
-
-    start_time = time.time()
-
-    label = "-"
-    conf = 0
-
-    try:
-
-        # =========================
-        # DETEKSI WAJAH
-        # =========================
-        face_box = detect_face(img)
-
-        if face_box is not None:
-
-            x1, y1, x2, y2 = face_box
-
-            # =========================
-            # CENTER FACE
-            # =========================
-            center_x = int((x1 + x2) / 2)
-            center_y = int((y1 + y2) / 2)
-
-            # =========================
-            # FIXED SIZE BOX
-            # =========================
-            box_width = 180
-            box_height = 180
-
-            x1 = center_x - box_width // 2
-            x2 = center_x + box_width // 2
-
-            y1 = center_y - box_height // 2
-            y2 = center_y + box_height // 2
-
-            # =========================
-            # LIMIT AGAR TIDAK ERROR
-            # =========================
-            x1 = max(0, x1)
-            y1 = max(0, y1)
-
-            x2 = min(img.shape[1], x2)
-            y2 = min(img.shape[0], y2)
-
-            # =========================
-            # VALIDASI AREA
-            # =========================
-            if x2 > x1 and y2 > y1:
-
-                face = img[y1:y2, x1:x2]
-
-                if face.size > 0:
-
-                    # =========================
-                    # PREDIKSI
-                    # =========================
-                    if model_choice == "MobileNetV3":
-
-                        face_input = preprocess(face)
-
-                        label, conf = predict_mobilenet(
-                            model,
-                            face_input
-                        )
-
-                    else:
-
-                        label, conf = predict_yolo(
-                            model,
-                            face
-                        )
-
-                    # =========================
-                    # WARNA BOX
-                    # =========================
-                    color = (
-                        (0,255,0)
-                        if label == "Fokus"
-                        else (0,0,255)
-                    )
-
-                    # =========================
-                    # BOUNDING BOX
-                    # =========================
-                    cv2.rectangle(
-                        img,
-                        (x1, y1),
-                        (x2, y2),
-                        color,
-                        2
-                    )
-
-                    # =========================
-                    # LABEL
-                    # =========================
-                    cv2.putText(
-                        img,
-                        f"{label} {conf:.2f}",
-                        (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.8,
-                        color,
-                        2
-                    )
-
-                    # =========================
-                    # SAVE LOG TIAP 5 DETIK
-                    # =========================
-                    current_time = time.time()
-
-                    if (
-                        current_time
-                        - st.session_state.last_detection_time >= 5
-                    ):
-
-                        if get_detection_status():
-
-                            if (
-                                nama != ""
-                                and npm != ""
-                                and kelas != ""
-                            ):
-
-                                save_log(
-                                    nama.strip(),
-                                    npm.strip(),
-                                    kelas.strip(),
-                                    label,
-                                    round(float(conf), 2)
-                                )
-
-                                st.session_state.last_detection_time = current_time
-
-        # =========================
-        # FPS
-        # =========================
-        fps = 1 / (
-            time.time() - start_time
-        )
-
-        # =========================
-        # INFO BOX
-        # =========================
-        status_placeholder.markdown(f"""
-        ## 📊 Informasi
-
-        - 👤 Nama: **{nama}**
-        - 🧠 Model: **{model_choice}**
-        - 💻 Device: **{device_status}**
-        - 📷 Kamera: **{camera_mode}**
-
-        ---
-
-        - 🎯 Status: **{label}**
-        - 📈 Confidence: **{conf:.2f}**
-
-        ---
-
-        - ⚡ FPS: **{fps:.2f}**
-        """)
-
-    except Exception as e:
-
-        st.error(f"ERROR: {e}")
-
-    return img
-
-# =========================
-# WEBRTC PROCESSOR
+# VIDEO PROCESSOR
 # =========================
 class VideoProcessor(VideoProcessorBase):
+
+    def __init__(self):
+
+        self.last_detection_time = 0
 
     def recv(self, frame):
 
@@ -362,7 +192,169 @@ class VideoProcessor(VideoProcessorBase):
         # =========================
         img = cv2.flip(img, 1)
 
-        img = process_frame(img)
+        start_time = time.time()
+
+        label = "-"
+        conf = 0
+
+        try:
+
+            # =========================
+            # DETEKSI WAJAH
+            # =========================
+            face_box = detect_face(img)
+
+            if face_box is not None:
+
+                x1, y1, x2, y2 = face_box
+
+                # =========================
+                # CENTER FACE
+                # =========================
+                center_x = int((x1 + x2) / 2)
+                center_y = int((y1 + y2) / 2)
+
+                # =========================
+                # FIXED SIZE BOX
+                # =========================
+                box_width = 180
+                box_height = 180
+
+                x1 = center_x - box_width // 2
+                x2 = center_x + box_width // 2
+
+                y1 = center_y - box_height // 2
+                y2 = center_y + box_height // 2
+
+                # =========================
+                # LIMIT AGAR TIDAK ERROR
+                # =========================
+                x1 = max(0, x1)
+                y1 = max(0, y1)
+
+                x2 = min(img.shape[1], x2)
+                y2 = min(img.shape[0], y2)
+
+                # =========================
+                # VALIDASI AREA
+                # =========================
+                if x2 > x1 and y2 > y1:
+
+                    face = img[y1:y2, x1:x2]
+
+                    if face.size > 0:
+
+                        # =========================
+                        # PREDIKSI
+                        # =========================
+                        if model_choice == "MobileNetV3":
+
+                            face_input = preprocess(face)
+
+                            label, conf = predict_mobilenet(
+                                model,
+                                face_input
+                            )
+
+                        else:
+
+                            label, conf = predict_yolo(
+                                model,
+                                face
+                            )
+
+                        # =========================
+                        # WARNA BOX
+                        # =========================
+                        color = (
+                            (0,255,0)
+                            if label == "Fokus"
+                            else (0,0,255)
+                        )
+
+                        # =========================
+                        # BOUNDING BOX
+                        # =========================
+                        cv2.rectangle(
+                            img,
+                            (x1, y1),
+                            (x2, y2),
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # LABEL
+                        # =========================
+                        cv2.putText(
+                            img,
+                            f"{label} {conf:.2f}",
+                            (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.8,
+                            color,
+                            2
+                        )
+
+                        # =========================
+                        # SAVE LOG TIAP 5 DETIK
+                        # =========================
+                        current_time = time.time()
+
+                        if (
+                            current_time
+                            - self.last_detection_time >= 5
+                        ):
+
+                            if get_detection_status():
+
+                                if (
+                                    nama != ""
+                                    and npm != ""
+                                    and kelas != ""
+                                ):
+
+                                    save_log(
+                                        nama.strip(),
+                                        npm.strip(),
+                                        kelas.strip(),
+                                        label,
+                                        round(float(conf), 2)
+                                    )
+
+                                    self.last_detection_time = current_time
+
+            # =========================
+            # FPS
+            # =========================
+            fps = 1 / (
+                time.time() - start_time
+            )
+
+            # =========================
+            # INFO BOX
+            # =========================
+            status_placeholder.markdown(f"""
+            ## 📊 Informasi
+
+            - 👤 Nama: **{nama}**
+            - 🧠 Model: **{model_choice}**
+            - 💻 Device: **{device_status}**
+            - 📷 Kamera: **{camera_mode}**
+
+            ---
+
+            - 🎯 Status: **{label}**
+            - 📈 Confidence: **{conf:.2f}**
+
+            ---
+
+            - ⚡ FPS: **{fps:.2f}**
+            """)
+
+        except Exception as e:
+
+            st.error(f"ERROR: {e}")
 
         return av.VideoFrame.from_ndarray(
             img,
