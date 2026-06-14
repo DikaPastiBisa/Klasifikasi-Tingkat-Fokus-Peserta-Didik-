@@ -114,10 +114,14 @@ with col2:
 
 with col3:
 
-    camera_mode = st.selectbox(
+     camera_mode = st.selectbox(
         "📷 Kamera",
-        ["Web Browser", "OBS Virtual Camera"]
+        ["Web Browser"]
     )
+
+st.caption(
+    "Untuk menggunakan OBS, aktifkan OBS Virtual Camera lalu pilih OBS Virtual Camera pada izin kamera browser."
+)
 
 # =========================
 # BUTTON
@@ -401,40 +405,3 @@ if st.session_state.run:
 
                 async_processing=True,
             )
-
-    # =========================
-    # OBS CAMERA
-    # =========================
-    else:
-
-        with col_cam:
-
-            frame_placeholder = st.empty()
-
-            cap = cv2.VideoCapture(1)
-
-            while st.session_state.run:
-
-                ret, frame = cap.read()
-
-                if not ret:
-
-                    st.error(
-                        "OBS Virtual Camera tidak ditemukan"
-                    )
-
-                    break
-
-                # =========================
-                # UNMIRROR OBS
-                # =========================
-                frame = cv2.flip(frame, 1)
-
-                frame = process_frame(frame)
-
-                frame_placeholder.image(
-                    frame,
-                    channels="BGR"
-                )
-
-            cap.release()
