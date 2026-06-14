@@ -191,10 +191,6 @@ class VideoProcessor(VideoProcessorBase):
 
         img = frame.to_ndarray(format="bgr24")
 
-        # =========================
-        # UNMIRROR CAMERA
-        # =========================
-        img = cv2.flip(img, 1)
 
         start_time = time.time()
 
@@ -221,8 +217,8 @@ class VideoProcessor(VideoProcessorBase):
                 # =========================
                 # FIXED SIZE BOX
                 # =========================
-                box_width = 180
-                box_height = 180
+                box_width = 160
+                box_height = 160
 
                 x1 = center_x - box_width // 2
                 x2 = center_x + box_width // 2
@@ -331,8 +327,9 @@ class VideoProcessor(VideoProcessorBase):
             # =========================
             # FPS
             # =========================
-            fps = 1 / (
-                time.time() - start_time
+            fps = 1 / max(
+                (time.time() - start_time),
+                0.001
             )
 
             # =========================
