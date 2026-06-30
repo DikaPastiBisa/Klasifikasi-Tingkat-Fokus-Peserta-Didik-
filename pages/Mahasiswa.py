@@ -365,6 +365,13 @@ if st.session_state.run:
 
     st.success("Deteksi dimulai...")
 
+# =========================
+# DETEKSI
+# =========================
+if st.session_state.run:
+
+    st.success("Deteksi dimulai...")
+
     # =========================
     # WEB CAMERA
     # =========================
@@ -372,35 +379,38 @@ if st.session_state.run:
 
         with col_cam:
 
-        webrtc_streamer(
-            key="focus-detection",
-        
-            video_processor_factory=VideoProcessor,
-        
-            media_stream_constraints={
-                "video": {
-                    "width": 480,
-                    "height": 360,
+            webrtc_streamer(
+                key="focus-detection",
+
+                video_processor_factory=VideoProcessor,
+
+                media_stream_constraints={
+                    "video": {
+                        "width": 480,
+                        "height": 360,
+                        "frameRate": 15,
+                    },
+                    "audio": False,
                 },
-                "audio": False,
-            },
-        
-            rtc_configuration={
-                "iceServers": [
-                    {
-                        "urls": [
-                            "stun:stun.l.google.com:19302"
-                        ]
-                    },
-                    {
-                        "urls": [
-                            "turn:openrelay.metered.ca:80"
-                        ],
-                        "username": "openrelayproject",
-                        "credential": "openrelayproject",
-                    },
-                ]
-            },
-        
+
+                rtc_configuration={
+                    "iceServers": [
+                        {
+                            "urls": [
+                                "stun:stun.l.google.com:19302"
+                            ]
+                        },
+                        {
+                            "urls": [
+                                "turn:openrelay.metered.ca:80"
+                            ],
+                            "username": "openrelayproject",
+                            "credential": "openrelayproject",
+                        },
+                    ]
+                },
+
+                async_processing=True,
+            )
             async_processing=True,
         )
