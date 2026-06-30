@@ -121,8 +121,7 @@ with col3:
     ]
 )
 
-st.caption(
-   st.info("""
+st.info("""
 **Cara memilih kamera**
 
 1. Klik **Mulai Deteksi**
@@ -137,7 +136,6 @@ st.caption(
 
 Kemudian klik **Allow**.
 """)
-)
 
 # =========================
 # BUTTON
