@@ -382,23 +382,71 @@ if st.session_state.run:
 
                 video_processor_factory=VideoProcessor,
 
-                media_stream_constraints={
-                    "video": {
-                        "width": 480,
-                        "height": 360
-                    },
-                    "audio": False
-                },
+               media_stream_constraints={
+    "video":{
 
-                rtc_configuration={
-                    "iceServers": [
-                        {
-                            "urls": [
-                                "stun:stun.l.google.com:19302"
-                            ]
-                        }
-                    ]
-                },
+        "width":{
+            "ideal":640
+        },
 
+        "height":{
+            "ideal":480
+        },
+
+        "frameRate":{
+            "ideal":15
+        },
+
+        "facingMode":"user"
+
+    },
+
+    "audio":False
+},
+
+rtc_configuration={
+    "iceServers":[
+
+        {
+            "urls":[
+                "stun:stun.l.google.com:19302",
+                "stun:stun.relay.metered.ca:80"
+            ]
+        },
+
+        {
+            "urls":[
+                "turn:global.relay.metered.ca:80"
+            ],
+            "username":"320099d3c6d3df05a5e4ff74",
+            "credential":"32EAr24ItPARmp2W",
+        },
+
+        {
+            "urls":[
+                "turn:global.relay.metered.ca:80?transport=tcp"
+            ],
+            "username":"320099d3c6d3df05a5e4ff74",
+            "credential":"32EAr24ItPARmp2W",
+        },
+
+        {
+            "urls":[
+                "turn:global.relay.metered.ca:443"
+            ],
+            "username":"320099d3c6d3df05a5e4ff74",
+            "credential":"32EAr24ItPARmp2W",
+        },
+
+        {
+            "urls":[
+                "turns:global.relay.metered.ca:443?transport=tcp"
+            ],
+            "username":"320099d3c6d3df05a5e4ff74",
+            "credential":"32EAr24ItPARmp2W",
+        },
+
+    ]
+},
                 async_processing=True,
             )
