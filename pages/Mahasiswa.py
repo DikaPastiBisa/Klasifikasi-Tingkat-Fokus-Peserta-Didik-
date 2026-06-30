@@ -114,13 +114,29 @@ with col2:
 
 with col3:
 
-     camera_mode = st.selectbox(
-        "📷 Kamera",
-        ["Web Browser"]
-    )
+    camera_mode = st.selectbox(
+    "📷 Kamera",
+    [
+        "Browser Camera (Pilih Webcam / OBS)"
+    ]
+)
 
 st.caption(
-    "Untuk menggunakan OBS, aktifkan OBS Virtual Camera lalu pilih OBS Virtual Camera pada izin kamera browser."
+   st.info("""
+**Cara memilih kamera**
+
+1. Klik **Mulai Deteksi**
+2. Klik tombol **START**
+3. Browser akan meminta izin kamera.
+4. Pilih salah satu kamera:
+
+- Integrated Camera
+- OBS Virtual Camera
+- USB Camera
+- Logitech Camera
+
+Kemudian klik **Allow**.
+""")
 )
 
 # =========================
@@ -374,36 +390,30 @@ if st.session_state.run:
 
         with col_cam:
 
-            webrtc_streamer(
-                key="focus-detection",
+webrtc_streamer(
+    key="focus-detection",
 
-                video_processor_factory=VideoProcessor,
+    video_processor_factory=VideoProcessor,
 
-                media_stream_constraints={
-                    "video": {
-                        "width": 480,
-                        "height": 360,
-                        "frameRate": 15,
-                    },
-                    "audio": False,
-                },
+    media_stream_constraints={
+        "video": {
+            "width": {"ideal": 640},
+            "height": {"ideal": 480},
+            "frameRate": {"ideal": 15},
+            "facingMode": "user"
+        },
+        "audio": False,
+    },
 
-                rtc_configuration={
-                    "iceServers": [
-                        {
-                            "urls": [
-                                "stun:stun.l.google.com:19302"
-                            ]
-                        },
-                        {
-                            "urls": [
-                                "turn:openrelay.metered.ca:80"
-                            ],
-                            "username": "openrelayproject",
-                            "credential": "openrelayproject",
-                        },
-                    ]
-                },
+    rtc_configuration={
+        "iceServers": [
+            {
+                "urls": [
+                    "stun:stun.l.google.com:19302"
+                ]
+            }
+        ]
+    },
 
-                async_processing=True,
-            )
+    async_processing=True,
+)
