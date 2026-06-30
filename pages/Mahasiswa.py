@@ -398,38 +398,41 @@ if camera_mode == "Web Browser":
                 "iceServers": [
 
                     {
-    "urls": [
-        "stun:stun.relay.metered.ca:80",
-    ]
-},
-{
-    "urls": [
-        "turn:standard.relay.metered.ca:80",
-    ],
-    "username": "320099d3c6d3df05a5e4ff74A",
-    "credential": "32EAr24ItPARmp2WA",
-},
-{
-    "urls": [
-        "turn:standard.relay.metered.ca:80?transport=tcp",
-    ],
-    "username": "320099d3c6d3df05a5e4ff74A",
-    "credential": "32EAr24ItPARmp2WA",
-},
-{
-    "urls": [
-        "turn:standard.relay.metered.ca:443",
-    ],
-    "username": "320099d3c6d3df05a5e4ff74A",
-    "credential": "32EAr24ItPARmp2WA",
-},
-{
-    "urls": [
-        "turns:standard.relay.metered.ca:443?transport=tcp",
-    ],
-    "username": "320099d3c6d3df05a5e4ff74A",
-    "credential": "32EAr24ItPARmp2WA",
-},
+                        "urls": [
+                            "stun:stun.relay.metered.ca:80",
+                        ]
+                    },
+                    {
+                        "urls": [
+                            "turn:standard.relay.metered.ca:80",
+                        ],
+                        "username": "320099d3c6d3df05a5e4ff74A",
+                        "credential": "32EAr24ItPARmp2WA",
+                    },
+                    {
+                        "urls": [
+                            "turn:standard.relay.metered.ca:80?transport=tcp",
+                        ],
+                        "username": "320099d3c6d3df05a5e4ff74A",
+                        "credential": "32EAr24ItPARmp2WA",
+                    },
+                    {
+                        "urls": [
+                            "turn:standard.relay.metered.ca:443",
+                        ],
+                        "username": "320099d3c6d3df05a5e4ff74A",
+                        "credential": "32EAr24ItPARmp2WA",
+                    },
+                    {
+                        "urls": [
+                            "turns:standard.relay.metered.ca:443?transport=tcp",
+                        ],
+                        "username": "320099d3c6d3df05a5e4ff74A",
+                        "credential": "32EAr24ItPARmp2WA",
+                    },
+
+                ]
+            },
 
             async_processing=True,
 
