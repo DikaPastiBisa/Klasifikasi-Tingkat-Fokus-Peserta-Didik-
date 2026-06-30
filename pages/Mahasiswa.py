@@ -527,7 +527,6 @@ if st.session_state.run:
 
                 async_processing=True,
 
-                desired_playing_state=True,
             )
 
             if webrtc_ctx.state.playing:
