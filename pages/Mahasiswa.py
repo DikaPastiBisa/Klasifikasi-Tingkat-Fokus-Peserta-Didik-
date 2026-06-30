@@ -5,7 +5,7 @@ import torch
 import av
 import json
 
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 from utils.detection import *
 from utils.logging import *
@@ -363,46 +363,63 @@ class VideoProcessor(VideoProcessorBase):
         )
 
 # =========================
-# DETEKSI
+# WEB CAMERA
 # =========================
-if st.session_state.run:
+if camera_mode == "Web Browser":
 
-    st.success("Deteksi dimulai...")
+    with col_cam:
 
-    # =========================
-    # WEB CAMERA
-    # =========================
-    if camera_mode == "Web Browser":
+        webrtc_streamer(
 
-        with col_cam:
+            key="focus-detection",
 
-            webrtc_streamer(
+            mode=WebRtcMode.SENDRECV,
 
-                key="focus-detection",
+            video_processor_factory=VideoProcessor,
 
-                video_processor_factory=VideoProcessor,
+            media_stream_constraints={
+                "video": {
+                    "width": {"ideal": 640},
+                    "height": {"ideal": 480},
+                    "frameRate": {"ideal": 30},
+                    "facingMode": "user",
+                },
+                "audio": False,
+            },
 
-                media_stream_constraints={
-                    "video": {
-                        "width": 480,
-                        "height": 360
+            rtc_configuration={
+                "iceServers": [
+
+                    # Google STUN
+                    {
+                        "urls": [
+                            "stun:stun.l.google.com:19302",
+                            "stun:stun1.l.google.com:19302",
+                            "stun:stun2.l.google.com:19302",
+                            "stun:stun3.l.google.com:19302",
+                            "stun:stun4.l.google.com:19302",
+                        ]
                     },
-                    "audio": False
-                },
 
-                rtc_configuration={
-                    "iceServers": [
-                        {
-                            "urls": [
-                               "stun:stun.l.google.com:19302",
-                                "stun:stun1.l.google.com:19302",
-                                "stun:stun2.l.google.com:19302",
-                                "stun:stun3.l.google.com:19302",
-                                "stun:stun4.l.google.com:19302"
-                            ]
-                        }
-                    ]
-                },
+                    # Open Relay STUN
+                    {
+                        "urls": [
+                            "stun:openrelay.metered.ca:80"
+                        ]
+                    },
 
-                async_processing=True,
-            )
+                    # Open Relay TURN
+                    {
+                        "urls": [
+                            "turn:openrelay.metered.ca:80",
+                            "turn:openrelay.metered.ca:443",
+                            "turn:openrelay.metered.ca:443?transport=tcp"
+                        ],
+                        "username": "openrelayproject",
+                        "credential": "openrelayproject",
+                    },
+                ]
+            },
+
+            async_processing=True,
+        )
