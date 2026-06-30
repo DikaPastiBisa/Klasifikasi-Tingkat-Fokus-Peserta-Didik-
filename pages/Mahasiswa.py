@@ -392,40 +392,30 @@ if camera_mode == "Web Browser":
             },
 
             rtc_configuration={
-                "iceCandidatePoolSize": 10,
-
-                "iceServers": [
-
-                    {
-                        "urls": [
-                            "stun:stun.l.google.com:19302",
-                            "stun:stun1.l.google.com:19302",
-                            "stun:stun2.l.google.com:19302",
-                            "stun:stun3.l.google.com:19302",
-                            "stun:stun4.l.google.com:19302",
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "stun:openrelay.metered.ca:80"
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "turn:openrelay.metered.ca:80",
-                            "turn:openrelay.metered.ca:443",
-                            "turn:openrelay.metered.ca:443?transport=tcp"
-                        ],
-                        "username": "openrelayproject",
-                        "credential": "openrelayproject",
-                    }
-                ]
-            },
-
-            async_processing=True,
-        )
+    "iceCandidatePoolSize": 10,
+    "iceServers": [
+        {
+            "urls": [
+                "stun:stun.l.google.com:19302",
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+                "stun:stun3.l.google.com:19302",
+                "stun:stun4.l.google.com:19302",
+            ]
+        },
+        {
+            "urls": [
+                "stun:openrelay.metered.ca:80"
+            ]
+        },
+        {
+            "urls": [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp"
+            ],
+            "username": "openrelayproject",
+            "credential": "openrelayproject"
         }
     ]
 },
