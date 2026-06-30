@@ -5,7 +5,7 @@ import torch
 import av
 import json
 
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
 from utils.detection import *
 from utils.logging import *
@@ -159,20 +159,17 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
-@st.cache_resource
-def get_mobilenet():
-    return load_mobilenet("models/model_fokus.tflite")
-
-
-@st.cache_resource
-def get_yolo():
-    return load_yolo("models/model_yolo_best.pt")
-
-
 if model_choice == "MobileNetV3":
-    model = get_mobilenet()
+
+    model = load_mobilenet(
+        "models/model_fokus.tflite"
+    )
+
 else:
-    model = get_yolo()
+
+    model = load_yolo(
+        "models/model_yolo_best.pt"
+    )
 
 # =========================
 # LAYOUT
@@ -366,66 +363,42 @@ class VideoProcessor(VideoProcessorBase):
         )
 
 # =========================
-# WEB CAMERA
+# DETEKSI
 # =========================
-if camera_mode == "Web Browser":
+if st.session_state.run:
 
-    with col_cam:
+    st.success("Deteksi dimulai...")
 
-        webrtc_streamer(
+    # =========================
+    # WEB CAMERA
+    # =========================
+    if camera_mode == "Web Browser":
 
-            key="focus-detection",
+        with col_cam:
 
-            mode=WebRtcMode.SENDRECV,
+            webrtc_streamer(
 
-            desired_playing_state=True,
+                key="focus-detection",
 
-            video_processor_factory=VideoProcessor,
+                video_processor_factory=VideoProcessor,
 
-            media_stream_constraints={
-                "video": {
-                    "width": {"ideal": 640},
-                    "height": {"ideal": 480},
-                    "frameRate": {"ideal": 30},
-                    "facingMode": "user",
+                media_stream_constraints={
+                    "video": {
+                        "width": 480,
+                        "height": 360
+                    },
+                    "audio": False
                 },
-                "audio": False,
-            },
 
-            rtc_configuration={
-                "iceCandidatePoolSize": 10,
+                rtc_configuration={
+                    "iceServers": [
+                        {
+                            "urls": [
+                                "stun:stun.l.google.com:19302"
+                            ]
+                        }
+                    ]
+                },
 
-                "iceServers": [
-
-                    {
-                        "urls": [
-                            "stun:stun.l.google.com:19302",
-                            "stun:stun1.l.google.com:19302",
-                            "stun:stun2.l.google.com:19302",
-                            "stun:stun3.l.google.com:19302",
-                            "stun:stun4.l.google.com:19302",
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "stun:openrelay.metered.ca:80"
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "turn:openrelay.metered.ca:80",
-                            "turn:openrelay.metered.ca:443",
-                            "turn:openrelay.metered.ca:443?transport=tcp"
-                        ],
-                        "username": "openrelayproject",
-                        "credential": "openrelayproject",
-                    }
-
-                ]
-            },
-
-            async_processing=True,
-
-        )
+                async_processing=True,
+            )
