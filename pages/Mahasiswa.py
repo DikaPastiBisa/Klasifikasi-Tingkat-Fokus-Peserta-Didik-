@@ -380,7 +380,7 @@ if camera_mode == "Web Browser":
             desired_playing_state=True,
 
             video_processor_factory=VideoProcessor,
-
+        )
             media_stream_constraints={
                 "video": {
                     "width": {"ideal": 640},
