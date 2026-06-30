@@ -159,17 +159,20 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
+@st.cache_resource
+def get_mobilenet():
+    return load_mobilenet("models/model_fokus.tflite")
+
+
+@st.cache_resource
+def get_yolo():
+    return load_yolo("models/model_yolo_best.pt")
+
+
 if model_choice == "MobileNetV3":
-
-    model = load_mobilenet(
-        "models/model_fokus.tflite"
-    )
-
+    model = get_mobilenet()
 else:
-
-    model = load_yolo(
-        "models/model_yolo_best.pt"
-    )
+    model = get_yolo()
 
 # =========================
 # LAYOUT
@@ -370,10 +373,11 @@ if camera_mode == "Web Browser":
     with col_cam:
 
         webrtc_streamer(
-
             key="focus-detection",
 
             mode=WebRtcMode.SENDRECV,
+
+            desired_playing_state=True,
 
             video_processor_factory=VideoProcessor,
 
@@ -388,9 +392,10 @@ if camera_mode == "Web Browser":
             },
 
             rtc_configuration={
+                "iceCandidatePoolSize": 10,
+
                 "iceServers": [
 
-                    # Google STUN
                     {
                         "urls": [
                             "stun:stun.l.google.com:19302",
@@ -401,14 +406,12 @@ if camera_mode == "Web Browser":
                         ]
                     },
 
-                    # Open Relay STUN
                     {
                         "urls": [
                             "stun:openrelay.metered.ca:80"
                         ]
                     },
 
-                    # Open Relay TURN
                     {
                         "urls": [
                             "turn:openrelay.metered.ca:80",
@@ -417,9 +420,12 @@ if camera_mode == "Web Browser":
                         ],
                         "username": "openrelayproject",
                         "credential": "openrelayproject",
-                    },
+                    }
                 ]
             },
 
             async_processing=True,
         )
+        }
+    ]
+},
