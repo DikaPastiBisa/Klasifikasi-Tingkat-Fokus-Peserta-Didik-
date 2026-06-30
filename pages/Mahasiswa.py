@@ -481,8 +481,6 @@ if st.session_state.run:
 
                 key="focus-detection",
 
-                mode="SENDRECV",
-
                 video_processor_factory=VideoProcessor,
 
                 media_stream_constraints={
