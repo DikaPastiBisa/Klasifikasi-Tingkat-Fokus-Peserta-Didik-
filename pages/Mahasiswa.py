@@ -159,17 +159,13 @@ with colB:
 # =========================
 # LOAD MODEL
 # =========================
-if model_choice == "MobileNetV3":
+@st.cache_resource
+def load_model(model_choice):
 
-    model = load_mobilenet(
-        "models/model_fokus.tflite"
-    )
+    if model_choice=="MobileNetV3":
+        return load_mobilenet("models/model_fokus.tflite")
 
-else:
-
-    model = load_yolo(
-        "models/model_yolo_best.pt"
-    )
+    return load_yolo("models/model_yolo_best.pt")
 
 # =========================
 # LAYOUT
@@ -391,14 +387,21 @@ if st.session_state.run:
                 },
 
                 rtc_configuration={
-                    "iceServers": [
+                    "iceServers":[
                         {
-                            "urls": [
+                            "urls":[
                                 "stun:stun.l.google.com:19302"
                             ]
+                        },
+                        {
+                            "urls":[
+                                "turn:openrelay.metered.ca:80"
+                            ],
+                            "username":"openrelayproject",
+                            "credential":"openrelayproject"
                         }
                     ]
-                },
+                }
 
                 async_processing=True,
             )
