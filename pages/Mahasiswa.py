@@ -167,6 +167,8 @@ def load_model(model_choice):
 
     return load_yolo("models/model_yolo_best.pt")
 
+model = load_model(model_choice)
+
 # =========================
 # LAYOUT
 # =========================
@@ -365,13 +367,6 @@ if st.session_state.run:
 
     st.success("Deteksi dimulai...")
 
-# =========================
-# DETEKSI
-# =========================
-if st.session_state.run:
-
-    st.success("Deteksi dimulai...")
-
     # =========================
     # WEB CAMERA
     # =========================
@@ -412,5 +407,3 @@ if st.session_state.run:
 
                 async_processing=True,
             )
-            async_processing=True,
-        )
