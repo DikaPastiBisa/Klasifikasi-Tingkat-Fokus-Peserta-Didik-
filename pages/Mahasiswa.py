@@ -373,6 +373,7 @@ if camera_mode == "Web Browser":
     with col_cam:
 
         webrtc_streamer(
+
             key="focus-detection",
 
             mode=WebRtcMode.SENDRECV,
@@ -380,7 +381,7 @@ if camera_mode == "Web Browser":
             desired_playing_state=True,
 
             video_processor_factory=VideoProcessor,
-        )
+
             media_stream_constraints={
                 "video": {
                     "width": {"ideal": 640},
@@ -392,30 +393,39 @@ if camera_mode == "Web Browser":
             },
 
             rtc_configuration={
-    "iceCandidatePoolSize": 10,
-    "iceServers": [
-        {
-            "urls": [
-                "stun:stun.l.google.com:19302",
-                "stun:stun1.l.google.com:19302",
-                "stun:stun2.l.google.com:19302",
-                "stun:stun3.l.google.com:19302",
-                "stun:stun4.l.google.com:19302",
-            ]
-        },
-        {
-            "urls": [
-                "stun:openrelay.metered.ca:80"
-            ]
-        },
-        {
-            "urls": [
-                "turn:openrelay.metered.ca:80",
-                "turn:openrelay.metered.ca:443",
-                "turn:openrelay.metered.ca:443?transport=tcp"
-            ],
-            "username": "openrelayproject",
-            "credential": "openrelayproject"
-        }
-    ]
-},
+                "iceCandidatePoolSize": 10,
+
+                "iceServers": [
+
+                    {
+                        "urls": [
+                            "stun:stun.l.google.com:19302",
+                            "stun:stun1.l.google.com:19302",
+                            "stun:stun2.l.google.com:19302",
+                            "stun:stun3.l.google.com:19302",
+                            "stun:stun4.l.google.com:19302",
+                        ]
+                    },
+
+                    {
+                        "urls": [
+                            "stun:openrelay.metered.ca:80"
+                        ]
+                    },
+
+                    {
+                        "urls": [
+                            "turn:openrelay.metered.ca:80",
+                            "turn:openrelay.metered.ca:443",
+                            "turn:openrelay.metered.ca:443?transport=tcp"
+                        ],
+                        "username": "openrelayproject",
+                        "credential": "openrelayproject",
+                    }
+
+                ]
+            },
+
+            async_processing=True,
+
+        )
