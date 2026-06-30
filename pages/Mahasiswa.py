@@ -398,33 +398,38 @@ if camera_mode == "Web Browser":
                 "iceServers": [
 
                     {
-                        "urls": [
-                            "stun:stun.l.google.com:19302",
-                            "stun:stun1.l.google.com:19302",
-                            "stun:stun2.l.google.com:19302",
-                            "stun:stun3.l.google.com:19302",
-                            "stun:stun4.l.google.com:19302",
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "stun:openrelay.metered.ca:80"
-                        ]
-                    },
-
-                    {
-                        "urls": [
-                            "turn:openrelay.metered.ca:80",
-                            "turn:openrelay.metered.ca:443",
-                            "turn:openrelay.metered.ca:443?transport=tcp"
-                        ],
-                        "username": "openrelayproject",
-                        "credential": "openrelayproject",
-                    }
-
-                ]
-            },
+    "urls": [
+        "stun:stun.relay.metered.ca:80",
+    ]
+},
+{
+    "urls": [
+        "turn:standard.relay.metered.ca:80",
+    ],
+    "username": "320099d3c6d3df05a5e4ff74A",
+    "credential": "32EAr24ItPARmp2WA",
+},
+{
+    "urls": [
+        "turn:standard.relay.metered.ca:80?transport=tcp",
+    ],
+    "username": "320099d3c6d3df05a5e4ff74A",
+    "credential": "32EAr24ItPARmp2WA",
+},
+{
+    "urls": [
+        "turn:standard.relay.metered.ca:443",
+    ],
+    "username": "320099d3c6d3df05a5e4ff74A",
+    "credential": "32EAr24ItPARmp2WA",
+},
+{
+    "urls": [
+        "turns:standard.relay.metered.ca:443?transport=tcp",
+    ],
+    "username": "320099d3c6d3df05a5e4ff74A",
+    "credential": "32EAr24ItPARmp2WA",
+},
 
             async_processing=True,
 
